@@ -41,7 +41,6 @@ import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleFinder;
 import java.lang.module.ModuleReference;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -259,6 +258,19 @@ public class JShellTool implements MessageHandler {
     NameSpace currentNameSpace;
 
     Map<Snippet, SnippetInfo> mapSnippet;
+
+    private List<Suggestion> exitCompletionSuggestions(String sn, int c, int[] a) {
+        if (analysis == null || sn.isEmpty()) {
+// No completions if uninitialized or snippet not started
+            return Collections.emptyList();
+        } else {
+// Give exit code an int context by prefixing the arg
+            List<Suggestion> suggestions = analysis.completionSuggestions(INT_PREFIX + sn,
+                    INT_PREFIX.length() + c, a);
+            a[0] -= INT_PREFIX.length();
+            return suggestions;
+        }
+    }
 
     // Kinds of compiler/runtime init options
     private enum OptionKind {
@@ -1782,19 +1794,11 @@ public class JShellTool implements MessageHandler {
                 arg -> cmdImports(),
                 EMPTY_COMPLETION_PROVIDER));
         registerCommand(new Command("/exit",
-                arg -> cmdExit(arg),
-                (sn, c, a) -> {
-                    if (analysis == null || sn.isEmpty()) {
-                        // No completions if uninitialized or snippet not started
-                        return Collections.emptyList();
-                    } else {
-                        // Give exit code an int context by prefixing the arg
-                        List<Suggestion> suggestions = analysis.completionSuggestions(INT_PREFIX + sn,
-                                INT_PREFIX.length() + c, a);
-                        a[0] -= INT_PREFIX.length();
-                        return suggestions;
-                    }
-                }));
+                this::cmdExit,
+                this::exitCompletionSuggestions));
+        registerCommand(new Command("/quit",
+                this::cmdExit,
+                this::exitCompletionSuggestions));
         registerCommand(new Command("/env",
                 arg -> cmdEnv(arg),
                 envCompletion()));
@@ -1865,6 +1869,11 @@ public class JShellTool implements MessageHandler {
         registerCommand(new Command("rerun",
                 "help.rerun",
                 CommandKind.HELP_SUBJECT));
+        registerCommand(new Command("/bric3",
+                "help.bric3",
+                arg -> bric3(),
+                EMPTY_COMPLETION_PROVIDER,
+                CommandKind.NORMAL));
 
         commandCompletions = new ContinuousCompletionProvider(
                 commands.values().stream()
@@ -2449,6 +2458,18 @@ public class JShellTool implements MessageHandler {
         hard(centered, Stream.generate(() -> "=").limit(len).collect(Collectors.joining()));
         hard("");
         hardrb(key);
+    }
+
+    private boolean bric3() {
+        var name = "bric3";
+        var len = name.length();
+        var centered = "%" + ((OUTPUT_WIDTH + len) / 2) + "s";
+        hard("");
+        hard(centered, name);
+        hard(centered, Stream.generate(() -> "=").limit(len).collect(Collectors.joining()));
+        hard("");
+        hard("lorem ipsum");
+        return true;
     }
 
     private boolean cmdHistory(String rawArgs) {
