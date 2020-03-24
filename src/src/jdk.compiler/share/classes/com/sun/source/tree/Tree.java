@@ -199,6 +199,16 @@ public interface Tree {
         NEW_ARRAY(NewArrayTree.class),
 
         /**
+         * Used for instances of {@link NewMapTree}.
+         */
+        NEW_MAP(NewMapTree.class),
+
+        /**
+         * Used for instances of {@link NewMapEntryTree}.
+         */
+        NEW_MAP_ENTRY(NewMapEntryTree.class),
+
+        /**
          * Used for instances of {@link NewClassTree}.
          */
         NEW_CLASS(NewClassTree.class),

@@ -36,7 +36,6 @@ import com.sun.tools.javac.code.Source.Feature;
 import com.sun.tools.javac.parser.Tokens.*;
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
-import com.sun.tools.javac.resources.CompilerProperties.Fragments;
 import com.sun.tools.javac.resources.CompilerProperties.Warnings;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
@@ -2297,6 +2296,11 @@ public class JavacParser implements Parser {
      */
     JCExpression arrayInitializer(int newpos, JCExpression t) {
         List<JCExpression> elems = arrayInitializerElements(newpos, t);
+
+        if (elems.head instanceof JCNewMapEntry) {
+            return toP(F.at(newpos).NewMap(elems));
+        }
+
         return toP(F.at(newpos).NewArray(t, List.nil(), elems));
     }
 
@@ -2306,11 +2310,29 @@ public class JavacParser implements Parser {
         if (token.kind == COMMA) {
             nextToken();
         } else if (token.kind != RBRACE) {
-            elems.append(variableInitializer());
-            while (token.kind == COMMA) {
-                nextToken();
-                if (token.kind == RBRACE) break;
-                elems.append(variableInitializer());
+            JCExpression _first = variableInitializer();
+
+            if (token.kind == COLON) {
+                accept(COLON);
+                JCExpression _firstValue = variableInitializer();
+                elems.append(toP(F.at(newpos).NewMapEntry(_first, _firstValue)));
+                
+                while (token.kind == COMMA) {
+                    nextToken();
+                    JCExpression k = variableInitializer();
+                    accept(COLON);
+                    JCExpression v = variableInitializer();
+                    elems.append(toP(F.at(newpos).NewMapEntry(k, v)));
+                    if (token.kind == RBRACE) break;
+                }
+
+            } else {
+                elems.append(_first);
+                while (token.kind == COMMA) {
+                    nextToken();
+                    if (token.kind == RBRACE) break;
+                    elems.append(variableInitializer());
+                }
             }
         }
         accept(RBRACE);
@@ -2320,7 +2342,17 @@ public class JavacParser implements Parser {
     /** VariableInitializer = ArrayInitializer | Expression
      */
     public JCExpression variableInitializer() {
-        return token.kind == LBRACE ? arrayInitializer(token.pos, null) : parseExpression();
+        if (token.kind == LBRACE) {
+
+//            if (type instanceof JCIdent
+//                    && Objects.equals(((JCIdent) type).name,
+//                    names.fromString("Map"))) {
+//
+//                F.
+//            }
+            return arrayInitializer(token.pos, null);
+        }
+        return parseExpression();
     }
 
     /** ParExpression = "(" Expression ")"

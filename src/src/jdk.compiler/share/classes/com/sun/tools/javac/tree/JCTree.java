@@ -209,6 +209,14 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
          */
         NEWARRAY,
 
+        /** Map creation expressions, of type NewMap.
+         */
+        NEWMAP,
+
+        /** Map entry expressions, of type NewMapEntry.
+         */
+        NEWMAPENTRY,
+
         /** Lambda expression, of type Lambda.
          */
         LAMBDA,
@@ -1763,6 +1771,116 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         @Override
         public Tag getTag() {
             return NEWARRAY;
+        }
+
+        @Override @DefinedBy(Api.COMPILER_TREE)
+        public List<JCAnnotation> getAnnotations() {
+            return annotations;
+        }
+
+        @Override @DefinedBy(Api.COMPILER_TREE)
+        public List<List<JCAnnotation>> getDimAnnotations() {
+            return dimAnnotations;
+        }
+    }
+
+    /**
+     * A new[...] operation.
+     */
+    public static class JCNewMap extends JCExpression implements NewMapTree {
+        public JCExpression elemtype;
+        public List<JCExpression> dims;
+        // type annotations on inner-most component
+        public List<JCAnnotation> annotations;
+        // type annotations on dimensions
+        public List<List<JCAnnotation>> dimAnnotations;
+        public List<JCExpression> elems;
+        private JCMethodInvocation mapOfEntriesInvocation;
+
+        protected JCNewMap(JCFieldAccess ofEntriesMethod, List<JCExpression> elems)
+        {
+            this.annotations = List.nil();
+            this.dimAnnotations = List.nil();
+            this.elems = elems;
+            mapOfEntriesInvocation = new JCMethodInvocation(List.nil(), ofEntriesMethod, elems);
+        }
+        @Override
+        public void accept(Visitor v) { v.visitApply(this.mapOfEntriesInvocation); }
+
+        @DefinedBy(Api.COMPILER_TREE)
+        public Kind getKind() { return Kind.NEW_MAP; }
+        @DefinedBy(Api.COMPILER_TREE)
+        public JCExpression getType() { return elemtype; }
+        @DefinedBy(Api.COMPILER_TREE)
+        public List<JCExpression> getDimensions() {
+            return dims;
+        }
+        @DefinedBy(Api.COMPILER_TREE)
+        public List<JCExpression> getInitializers() {
+            return elems;
+        }
+        @Override @DefinedBy(Api.COMPILER_TREE)
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            return v.visitMethodInvocation(this.mapOfEntriesInvocation, d);
+        }
+        @Override
+        public Tag getTag() {
+            return NEWMAP;
+        }
+
+        @Override @DefinedBy(Api.COMPILER_TREE)
+        public List<JCAnnotation> getAnnotations() {
+            return annotations;
+        }
+
+        @Override @DefinedBy(Api.COMPILER_TREE)
+        public List<List<JCAnnotation>> getDimAnnotations() {
+            return dimAnnotations;
+        }
+    }
+
+    /**
+     * A map entry operation.
+     */
+    public static class JCNewMapEntry extends JCExpression implements NewMapEntryTree {
+        public JCExpression elemtype;
+        public List<JCExpression> dims;
+        // type annotations on inner-most component
+        public List<JCAnnotation> annotations;
+        // type annotations on dimensions
+        public List<List<JCAnnotation>> dimAnnotations;
+        public List<JCExpression> elems;
+        private JCMethodInvocation mapEntryInvocation;
+
+        protected JCNewMapEntry(JCFieldAccess entryMethod, JCExpression k, JCExpression v)
+        {
+            this.annotations = List.nil();
+            this.dimAnnotations = List.nil();
+            this.elems = List.of(k, v);
+            mapEntryInvocation = new JCMethodInvocation(List.nil(), entryMethod, elems);
+        }
+        @Override
+        public void accept(Visitor v) { v.visitApply(this.mapEntryInvocation); }
+
+        @DefinedBy(Api.COMPILER_TREE)
+        public Kind getKind() { return Kind.NEW_MAP_ENTRY; }
+        @DefinedBy(Api.COMPILER_TREE)
+        public JCExpression getType() { return elemtype; }
+        @DefinedBy(Api.COMPILER_TREE)
+        public List<JCExpression> getDimensions() {
+            return dims;
+        }
+        @DefinedBy(Api.COMPILER_TREE)
+        public List<JCExpression> getInitializers() {
+            return elems;
+        }
+        @Override @DefinedBy(Api.COMPILER_TREE)
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            return v.visitMethodInvocation(this.mapEntryInvocation, d);
+        }
+        @Override
+        public Tag getTag() {
+            return NEWMAPENTRY;
         }
 
         @Override @DefinedBy(Api.COMPILER_TREE)

@@ -28,7 +28,6 @@ package com.sun.tools.javac.tree;
 import java.util.Iterator;
 
 import com.sun.source.tree.ModuleTree.ModuleKind;
-import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Attribute.UnresolvedClass;
 import com.sun.tools.javac.code.Symbol.*;
@@ -397,6 +396,29 @@ public class TreeMaker implements JCTree.Factory {
                              List<JCExpression> elems)
     {
         JCNewArray tree = new JCNewArray(elemtype, dims, elems);
+        tree.pos = pos;
+        return tree;
+    }
+
+    public JCNewMap NewMap(List<JCExpression> elems) {
+//        JCFieldAccess utilPkg = new JCFieldAccess(Ident(names.fromString("java")), names.fromString("util"), null);
+//        JCFieldAccess mapClass = new JCFieldAccess(utilPkg, names.fromString("Map"), null);
+        JCFieldAccess utilPkg = Select(Ident(names.fromString("java")), names.fromString("util"));
+        JCFieldAccess mapClass = Select(utilPkg, names.fromString("Map"));
+        JCFieldAccess ofEntriesMethod = Select(mapClass, names.fromString("ofEntries"));
+
+
+        JCNewMap tree = new JCNewMap(ofEntriesMethod, elems);
+        tree.pos = pos;
+        return tree;
+    }
+
+    public JCNewMapEntry NewMapEntry(JCExpression k, JCExpression v) {
+        JCFieldAccess utilPkg = Select(Ident(names.fromString("java")), names.fromString("util"));
+        JCFieldAccess mapClass = Select(utilPkg, names.fromString("Map"));
+        JCFieldAccess entryMethod = Select(mapClass, names.fromString("entry"));
+
+        JCNewMapEntry tree = new JCNewMapEntry(entryMethod, k, v);
         tree.pos = pos;
         return tree;
     }
