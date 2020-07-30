@@ -42,37 +42,4 @@ import java.util.List;
  * @since 11.bric3
  */
 public interface NewMapEntryTree extends ExpressionTree {
-    /**
-     * Returns the base type of the expression.
-     * May be {@code null} for an array initializer expression.
-     * @return the base type
-     */
-    Tree getType();
-
-    /**
-     * Returns the dimension expressions for the type.
-     *
-     * @return the dimension expressions
-     */
-    List<? extends ExpressionTree> getDimensions();
-
-    /**
-     * Returns the initializer expressions.
-     *
-     * @return the initializer expressions
-     */
-    List<? extends ExpressionTree> getInitializers();
-
-    /**
-     * Returns the annotations on the base type.
-     * @return the annotations
-     */
-    List<? extends AnnotationTree> getAnnotations();
-
-    /**
-     * Returns the annotations on each of the dimension
-     * expressions.
-     * @return the annotations on the dimensions expressions
-     */
-    List<? extends List<? extends AnnotationTree>> getDimAnnotations();
 }

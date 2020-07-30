@@ -407,7 +407,6 @@ public class TreeMaker implements JCTree.Factory {
         JCFieldAccess mapClass = Select(utilPkg, names.fromString("Map"));
         JCFieldAccess ofEntriesMethod = Select(mapClass, names.fromString("ofEntries"));
 
-
         JCNewMap tree = new JCNewMap(ofEntriesMethod, elems);
         tree.pos = pos;
         return tree;
